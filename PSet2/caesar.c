@@ -22,10 +22,9 @@ int main(int argc, char* argv[])
     //ensure the number shifts around the alphabet size
     int rotation=atoi(argv[1])%26; 
     
-    int maxMsgLength=256;
-    char msg[maxMsgLength];
+    char msg[256];
     printf("Please enter a message to be encrypted: ");
-    fgets (msg, maxMsgLength, stdin);
+    fgets (msg, 256, stdin);
     int msgLen=strlen(msg);
     
     for(int i=0;i<msgLen;i++)

@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Converts a single letter to upper case using ascii conversion
 int lowerCaseToUpperCase(char a);
@@ -17,10 +18,9 @@ int lowerCaseToUpperCase(char a);
 int letterToCapASCII(char name);
 
 int main(void){
-    int maxNameLength=100;
-    char rawName[maxNameLength];
+	char rawName[100];
     printf("Please enter a name: ");
-    fgets (rawName, maxNameLength, stdin);
+    fgets (rawName, 100, stdin);
     int nameLength=strlen(rawName);
     printf("The initials are: ");
     printf("%c",(char)letterToCapASCII(rawName[0])); 

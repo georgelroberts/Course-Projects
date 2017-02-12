@@ -31,18 +31,19 @@ int main(int argc, char* argv[])
         }
     }
     
-    int maxMsgLength=256;
-    char msg[maxMsgLength];
+    char msg[256];
     printf("Please enter a message to be encrypted: ");
-    fgets (msg, maxMsgLength, stdin);
+    fgets (msg, 256, stdin);
     int msgLen=strlen(msg);
     
     char* key=argv[1];
     int keyLen=strlen(key); 
-    int keyRotation[keyLen]; 
+	int* keyRotation = malloc(sizeof(int)*keyLen);
+    //int keyRotation[keyLen]; 
     int keyPosition=0;
     int rotator=0;
-    int lowerKey[keyLen]; 
+	int* lowerKey = malloc(sizeof(int)*keyLen);
+    //int lowerKey[keyLen]; 
     
     // Convert key into a rotation about the alphabet
     for(int m=0;m<keyLen;m++){
