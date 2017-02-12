@@ -8,7 +8,8 @@
  */
 
 #include "helpers.h"
-
+#include "cs50.h"
+#include <stdbool.h>
 /**
  * Returns true if value is in array of n values, else false.
  */
@@ -47,44 +48,42 @@ void swap(int* a, int* b){
  * Sorts array of n values.
  */
  
-void sort(int values[], int n) //implemented all three n^2 algorithms, just to check
+void insertionSort(int *values, int n) //implemented all three n^2 algorithms, just to check
 {
-/*    //Bubble sort. Takes first two values, switches them if first is greater than second. Does this for the whole array.
-    //Repeats until it runs through the whole thing and nothing changes
-    int j;
-    do{
-        j=0; // parameter defining if anything is swapped. If not, exit.
-        for(int i=0; i<n-1;i++){
-            if(values[i]>values[i+1]){ //sort from smallest to highest
-                swap(values[i],values[i+1]);
-                j=1;
-            }
-        }
-    } while(j==1);
-*/
-
-/*    //Selection sort
-for(int i=0; i<n-1;i++){
-    int minIndex=i;
-    for(int j=i+1;j<n;j++){
-        if(values[j]<values[minIndex])
-            minIndex=j;
-    }
-    if(minIndex!=i)
-        swap(&values[i],&values[minIndex]);
+	for (int i = 1;i<n;i++) {
+		int j = i - 1;
+		int thisValue = values[i];
+		while (j >= 0 && values[j]>thisValue) {
+			values[j + 1] = values[j]; //shift the larger value to the right.
+			j = j - 1;
+		}
+		values[j + 1] = thisValue;
+	}
 }
-*/  
-    
-    //Insertion sort
-    
-    for(int i=1;i<n;i++){
-        int j=i-1;
-        int thisValue=values[i];
-        while(j>=0 && values[j]>thisValue){
-            values[j+1]=values[j]; //shift the larger value to the right.
-            j=j-1;
-        }
-        values[j+1]=thisValue;
-    }
-    return;
+
+void selectionSort(int *values, int n)
+{
+	for (int i = 0; i<n - 1;i++) {
+		int minIndex = i;
+		for (int j = i + 1;j<n;j++) {
+			if (values[j]<values[minIndex])
+				minIndex = j;
+		}
+		if (minIndex != i)
+			swap(&values[i], &values[minIndex]);
+	}
+}
+void bubbleSort(int *values, int n)
+{
+	//Bubble sort.
+	int j;
+	do {
+		j = 0; // parameter defining if anything is swapped. If not, exit.
+		for (int i = 0; i < n - 1;i++) {
+			if (values[i] > values[i + 1]) { //sort from smallest to highest
+				swap(&values[i], &values[i + 1]);
+				j = 1;
+			}
+		}
+	} while (j == 1);
 }
