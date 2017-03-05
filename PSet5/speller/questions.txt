@@ -1,0 +1,17 @@
+0.  According to Merriam-Webster's Medical Dictionary, pneumonoultramicroscopicsilicovolcanoconiosis is a 
+pneumoconiosis caused by inhalation of very fine
+silicate or quartz dust.
+1.  getrusage returns resource usage statistics for a define process/thread. 
+2.  I counted 16.
+3.  This doesn't look like a functionality problem this so probably to save a small amount of resources by not having to load the 
+variables into a function every time it's run. 
+4.  The for loop takes the first character from the text file (and then each subsequent character) until it reaches the end of the file. 
+Inside this loop, there are a number of conditions to consider. The first looks at whether the character is alphabetic or an
+apostrophe (not at the first letter of the word). If so, add the character to a temporary array storing that word. If the word is 
+longer than a predefined limit, ignore the rest of the word. If the word has any numbers, ignore it and move to the next word. If
+neither of these conditions are reached, we are at a space, so this array now stores a full word, so store a null character, /o and
+increase the counter for number of words. Use the function to check whether the word exists in a dictionary + benchmark this function. 
+If it's mispelled, print the word. Start the new word. 
+5.  fscanf isn't as flexible, for a number of reasons. With fscanf you have to prepare a buffer, so the data you're reading from
+must be well structured. It's far more sensible to use fgetc as in the program and then just check if it's alphabetic etc. 
+6.  These are declared as constants so as to not change the dictionary or word we are pointing to. 

@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Index
+{% endblock %}
+
+{% block main %}
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Symbol</th>
+        <th>Name</th>
+        <th>Shares</th>
+        <th>Price</th>
+        <th>TOTAL</th>
+    </tr>
+    </thead>
+    <tfoot>
+    <tr>
+        <td colspan="4"></td>
+        <td><b>{{grandTotal}}</b></td>
+    </tr>
+    </tfoot>
+    <tbody>
+    {% for result in holdings %}
+    <tr>
+        <td>{{result.symbol}}</td>
+        <td>{{result.name}}</td>
+        <td>{{result.shares}}</td>
+        <td>{{result.price}}</td>
+        <td>{{result.total}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="4">CASH</td>
+        <td>{{currentCash}}</td>
+    </tr>
+    </tbody>
+</table>
+
+{% endblock %}

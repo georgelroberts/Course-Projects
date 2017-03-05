@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    History
+{% endblock %}
+
+{% block main %}
+    <table action="{{ url_for('history') }}" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Shares</th>
+                <th>Price</th>
+                <th>Transaction date</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+            {% for result in userHistory %}
+                <tr>
+                    <td>{{result.symbol}}</td>
+                    <td>{{result.noShares}}</td>
+                    <td>{{result.sharePrice}}</td>
+                    <td>{{result.time}}</td>
+                </tr>
+            {% endfor %}            
+        </tbody>
+        
+    </table>
+{% endblock %}
