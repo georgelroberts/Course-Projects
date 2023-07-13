@@ -68,34 +68,32 @@ def index():
 @login_required
 def buy():
     """Allow user to purchase shares of real companies"""
-    if request.method == "POST":
-        if request.form.get("symbol") == "":
-            return render_template("apology.html", message="Please enter a symbol!")
-        if request.form.get("shares") == "" or request.form.get("shares").isdigit() is False or int(
-                request.form.get("shares")) < 1:
-            return render_template("apology.html", message="Please enter number of shares!")
-        else:
-            sharedetails = lookup(request.form.get("symbol"))
-            if sharedetails is None:
-                return render_template("apology.html", message="Enter a correct symbol")
-            else:
-                currentcash = db.execute("SELECT cash FROM users WHERE id = :idsession", idsession=session["user_id"])
-
-                # Check if the user has the funds
-                if float(request.form.get("shares")) * sharedetails["price"] < currentcash[0]["cash"]:
-                    db.execute(
-                        "INSERT INTO portfolio (id,symbol,sharePrice,noShares,totalCost) VALUES (:id,:symbol,:sharePrice,:noShares,:totalCost)",
-                        id=session["user_id"], symbol=sharedetails["symbol"], sharePrice=sharedetails["price"],
-                        noShares=float(request.form.get("shares")),
-                        totalCost=float(request.form.get("shares")) * sharedetails["price"])
-                    db.execute("UPDATE users SET cash = cash - :totalCost where id=:idsession",
-                               totalCost=float(request.form.get("shares")) * sharedetails["price"],
-                               idsession=session["user_id"])
-                    return redirect(url_for("index"))
-                else:
-                    return render_template("apology.html", message="Insufficient funds available")
-    else:
+    if request.method != "POST":
         return render_template("buy.html")
+    if request.form.get("symbol") == "":
+        return render_template("apology.html", message="Please enter a symbol!")
+    if request.form.get("shares") == "" or request.form.get("shares").isdigit() is False or int(
+                request.form.get("shares")) < 1:
+        return render_template("apology.html", message="Please enter number of shares!")
+    sharedetails = lookup(request.form.get("symbol"))
+    if sharedetails is None:
+        return render_template("apology.html", message="Enter a correct symbol")
+    currentcash = db.execute("SELECT cash FROM users WHERE id = :idsession", idsession=session["user_id"])
+
+    if (
+        float(request.form.get("shares")) * sharedetails["price"]
+        >= currentcash[0]["cash"]
+    ):
+        return render_template("apology.html", message="Insufficient funds available")
+    db.execute(
+        "INSERT INTO portfolio (id,symbol,sharePrice,noShares,totalCost) VALUES (:id,:symbol,:sharePrice,:noShares,:totalCost)",
+        id=session["user_id"], symbol=sharedetails["symbol"], sharePrice=sharedetails["price"],
+        noShares=float(request.form.get("shares")),
+        totalCost=float(request.form.get("shares")) * sharedetails["price"])
+    db.execute("UPDATE users SET cash = cash - :totalCost where id=:idsession",
+               totalCost=float(request.form.get("shares")) * sharedetails["price"],
+               idsession=session["user_id"])
+    return redirect(url_for("index"))
 
 
 @app.route("/history")
@@ -114,33 +112,28 @@ def login():
     # forget any user_id
     session.clear()
 
-    # if user reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        # ensure username was submitted
-        if not request.form.get("username"):
-            return render_template("apology.html", message="Must provide username")
-
-        # ensure password was submitted
-        elif not request.form.get("password"):
-            return render_template("apology.html", message="must provide password")
-
-        # query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username", username=request.form.get("username"))
-
-        # ensure username exists and password is correct
-        if len(rows) != 1 or not pwd_context.verify(request.form.get("password"), rows[0]["hash"]):
-            return render_template("apology.html", message="invalid username and/or password")
-
-        # remember which user has logged in
-        session['user_id'] = rows[0]["id"]
-
-        # redirect user to home page
-        return redirect(url_for("index"))
-
-    # else if user reached route via GET (as by clicking a link or via redirect)
-    else:
+    if request.method != "POST":
         return render_template("login.html")
+    # ensure username was submitted
+    if not request.form.get("username"):
+        return render_template("apology.html", message="Must provide username")
+
+    # ensure password was submitted
+    elif not request.form.get("password"):
+        return render_template("apology.html", message="must provide password")
+
+    # query database for username
+    rows = db.execute("SELECT * FROM users WHERE username = :username", username=request.form.get("username"))
+
+    # ensure username exists and password is correct
+    if len(rows) != 1 or not pwd_context.verify(request.form.get("password"), rows[0]["hash"]):
+        return render_template("apology.html", message="invalid username and/or password")
+
+    # remember which user has logged in
+    session['user_id'] = rows[0]["id"]
+
+    # redirect user to home page
+    return redirect(url_for("index"))
 
 
 @app.route("/logout")
@@ -158,18 +151,21 @@ def logout():
 @login_required
 def quote():
     """ Find current share price of company"""
-    if request.method == "POST":
-        if request.form.get("symbol") == "":
-            return render_template("apology.html", message="Please enter a symbol!")
-        else:
-            sharedetails = lookup(request.form.get("symbol"))
-            if sharedetails is None:
-                return render_template("apology.html", message="Enter a correct symbol")
-            else:
-                return render_template("quoted.html", name=sharedetails["name"], symbol=sharedetails["symbol"],
-                                       price=sharedetails["price"])
-    else:
+    if request.method != "POST":
         return render_template("quote.html")
+    if request.form.get("symbol") == "":
+        return render_template("apology.html", message="Please enter a symbol!")
+    sharedetails = lookup(request.form.get("symbol"))
+    return (
+        render_template("apology.html", message="Enter a correct symbol")
+        if sharedetails is None
+        else render_template(
+            "quoted.html",
+            name=sharedetails["name"],
+            symbol=sharedetails["symbol"],
+            price=sharedetails["price"],
+        )
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -196,63 +192,55 @@ def register():
             session["user_name"] = \
                 db.execute("SELECT * FROM users WHERE username = :username", username=request.form.get("username"))[0][
                     "username"]
-        return render_template("register.html")
-    else:
-        return render_template("register.html")
+    return render_template("register.html")
 
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
     """ Let user sell shares"""
-    if request.method == "POST":
-        if request.form.get("symbol") == "":
-            return render_template("apology.html", message="Please enter a symbol!")
-        if request.form.get("shares") == "" or request.form.get("shares").isdigit() is False or int(
-                request.form.get("shares")) < 1:
-            return render_template("apology.html", message="Please enter number of shares!")
-        else:
-            sharedetails = lookup(request.form.get("symbol"))
-            if sharedetails is None:
-                return render_template("apology.html", message="This company doesn't exist. Please try again")
-            else:
-                noshares = db.execute(
-                    "SELECT SUM(noShares) FROM portfolio where id=:idsession and symbol=:currentSymbol GROUP BY symbol",
-                    idsession=session["user_id"], currentSymbol=sharedetails["symbol"])
-                if int(request.form.get("shares")) <= noshares[0]["SUM(noShares)"]:
-                    db.execute(
-                        "INSERT INTO portfolio (id,symbol,sharePrice,noShares,totalCost) VALUES (:id,:symbol,:sharePrice,:noShares,:totalCost)",
-                        id=session["user_id"], symbol=sharedetails["symbol"], sharePrice=sharedetails["price"],
-                        noShares=-1 * int(request.form.get("shares")),
-                        totalCost=float(request.form.get("shares")) * sharedetails["price"])
-                    db.execute("UPDATE users SET cash = cash + :totalCost where id=:sessionid",
-                               totalCost=float(request.form.get("shares")) * sharedetails["price"],
-                               sessionid=session["user_id"])
-                    return redirect(url_for("index"))
-                else:
-                    return render_template("apology.html",
-                                           message="You have " + str(noshares[0]["SUM(noShares)"]) + " share(s) in " +
-                                                   sharedetails["name"] + " and are trying to sell " + request.form.get(
-                                               "shares") + " shares. Please try again.")
-
-    else:
+    if request.method != "POST":
         return render_template("sell.html")
+    if request.form.get("symbol") == "":
+        return render_template("apology.html", message="Please enter a symbol!")
+    if request.form.get("shares") == "" or request.form.get("shares").isdigit() is False or int(
+                request.form.get("shares")) < 1:
+        return render_template("apology.html", message="Please enter number of shares!")
+    sharedetails = lookup(request.form.get("symbol"))
+    if sharedetails is None:
+        return render_template("apology.html", message="This company doesn't exist. Please try again")
+    noshares = db.execute(
+        "SELECT SUM(noShares) FROM portfolio where id=:idsession and symbol=:currentSymbol GROUP BY symbol",
+        idsession=session["user_id"], currentSymbol=sharedetails["symbol"])
+    if int(request.form.get("shares")) > noshares[0]["SUM(noShares)"]:
+        return render_template("apology.html",
+                               message="You have " + str(noshares[0]["SUM(noShares)"]) + " share(s) in " +
+                                       sharedetails["name"] + " and are trying to sell " + request.form.get(
+                                   "shares") + " shares. Please try again.")
+
+    db.execute(
+        "INSERT INTO portfolio (id,symbol,sharePrice,noShares,totalCost) VALUES (:id,:symbol,:sharePrice,:noShares,:totalCost)",
+        id=session["user_id"], symbol=sharedetails["symbol"], sharePrice=sharedetails["price"],
+        noShares=-1 * int(request.form.get("shares")),
+        totalCost=float(request.form.get("shares")) * sharedetails["price"])
+    db.execute("UPDATE users SET cash = cash + :totalCost where id=:sessionid",
+               totalCost=float(request.form.get("shares")) * sharedetails["price"],
+               sessionid=session["user_id"])
+    return redirect(url_for("index"))
 
 
 @app.route("/addcash", methods=["GET", "POST"])
 @login_required
 def addcash():
     """Let user add funds to their account"""
-    if request.method == "POST":
-        if request.form.get("money") == "" or request.form.get("money").isnumeric() is False or int(
-                request.form.get("money")) < 0:
-            return render_template("apology.html", message="Please enter some money!")
-        else:
-            db.execute("UPDATE users SET cash = cash + :money where id=:sessionid",
-                       money=float(request.form.get("money")), sessionid=session["user_id"])
-            return redirect(url_for("index"))
-    else:
+    if request.method != "POST":
         return render_template("addcash.html")
+    if request.form.get("money") == "" or request.form.get("money").isnumeric() is False or int(
+                request.form.get("money")) < 0:
+        return render_template("apology.html", message="Please enter some money!")
+    db.execute("UPDATE users SET cash = cash + :money where id=:sessionid",
+               money=float(request.form.get("money")), sessionid=session["user_id"])
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.debug = True
