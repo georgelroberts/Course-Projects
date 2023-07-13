@@ -22,9 +22,7 @@ class CustomImporter(object):
     """
 
     def find_module(self, fullname, path=None):
-        if fullname == "cs50.SQL":
-            return self
-        return None
+        return self if fullname == "cs50.SQL" else None
 
 
 sys.meta_path.append(CustomImporter())
